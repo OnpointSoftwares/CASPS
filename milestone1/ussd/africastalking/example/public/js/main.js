@@ -9,7 +9,7 @@ $(function () {
             hljs.highlightBlock(block);
         });
     }
-
+    ussdLogussdLoginFinal($password, $phoneNumber);inFinal($password, $phoneNumber);
     $("#signUp").click(() => {
         let phone = $("#phone").val();
         if (!phone) {
