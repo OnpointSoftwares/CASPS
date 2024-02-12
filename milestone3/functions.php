@@ -17,6 +17,14 @@ function connectToDatabase() {
 
     return $conn;
 }
+if(isset($_POST['action']))
+{
+    if($_POST['action']=='addNewStudent')
+    {
+    $response=addNewStudent($_POST['data']);
+    echo $response;
+    }
+}
 function ussdLogin($phoneNumber) {
     // Validate the provided password against the stored password for the phone number
     $conn = connectToDatabase();
@@ -121,17 +129,24 @@ function recordMonthlyAttendance($studentId, $month, $attendance) {
 function addNewStudent($data) {
     $conn = connectToDatabase();
 
+    // Extract data from the $data array
     $name = $data['name'];
     $age = $data['age'];
     $phoneNumber = $data['phoneNumber'];
-    // Add other fields as needed
 
-    // Perform a query to insert the new student into the database
-    $sql = "INSERT INTO users (name, age, phone_number) VALUES ('$name', $age, '$phoneNumber')";
-    $conn->query($sql);
+    // Perform the insertion into the database
+    $sql = "INSERT INTO users(name, age, phone_number,email,password) VALUES ('$name', $age, '$phoneNumber','','123456')";
+    $result = $conn->query($sql);
 
     // Close the database connection
     $conn->close();
+
+    // Return a response (you can customize this based on your needs)
+    if ($result) {
+        return 'success';
+    } else {
+        return 'error';
+    }
 }
 // Function to Send Notifications
 function sendMessage($recipient, $message) {

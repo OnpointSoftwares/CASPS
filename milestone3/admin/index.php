@@ -11,7 +11,7 @@ include('functions1.php');
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-
+   
     
     <style>
         /* Custom styles go here */
@@ -139,6 +139,10 @@ include('functions1.php');
                         <label for="phoneNumber">Phone Number:</label>
                         <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
                     </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Email:</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
                     <!-- Add more form fields as needed -->
                     <button type="button" class="btn btn-primary" onclick="addNewStudent()">Add Student</button>
                 </form>
@@ -155,10 +159,9 @@ include('functions1.php');
 
 <!-- Bootstrap JS and Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<!-- Your custom JavaScript functions go here -->
 <script>
     function editStudentModal(studentId) {
         // Fetch student data via AJAX and populate the edit modal
@@ -219,11 +222,20 @@ include('functions1.php');
         // Handle the data via AJAX
         $.ajax({
             type: 'POST',
-            url: '../functions.php',
+            url: '../functions.php', // Adjust the URL based on your file structure
             data: { action: 'addNewStudent', data: studentData },
-            success: function () {
-                // Reload the page or update the table with the new student
-                location.reload();
+            success: function (response) {
+                // Handle the response from the server
+                if (response === 'success') {
+                    // If successful, you might want to provide feedback to the user or perform other actions
+                    alert('Student added successfully');
+                    // Reload the page or update the table with the new student
+                    location.reload();
+                } else {
+                    // If an error occurred, you might want to display an error message or log the error
+                    alert('Error adding student'+response);
+                    alert(response);
+                }
             }
         });
     }

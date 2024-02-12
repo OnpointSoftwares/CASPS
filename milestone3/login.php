@@ -1,5 +1,4 @@
 <?php
-session_start();
 require_once("functions.php");
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
