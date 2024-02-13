@@ -75,21 +75,20 @@ function authenticateUser() {
 }
 
 // Function to Fetch Student Data for Parent
-function getStudentDataForParent($parentUserId) {
+function getStudentDataForParent($phoneNumber) {
     $conn = connectToDatabase();
 
     // Implement logic to fetch student data based on the parent's user ID
-     $sql = "SELECT * FROM students WHERE parent_id = $parentUserId";
+     $sql = "SELECT * FROM users WHERE phone_number=".$phoneNumber;
 
     $result = $conn->query($sql);
-
+    $row=mysqli_fetch_assoc($result);
     // Add code to process and return the fetched data
-
     // Close the database connection
     $conn->close();
 
     // Return the fetched data
-    return $result;
+    return $row;
 }
 
 // Function to Update Student Results
