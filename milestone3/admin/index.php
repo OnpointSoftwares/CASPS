@@ -152,9 +152,38 @@ include('functions1.php');
 </div>
 
 <!-- Edit Student Modal -->
+<!-- Edit Student Modal -->
 <div class="modal fade" id="editStudentModal" tabindex="-1" role="dialog" aria-labelledby="editStudentModalLabel"
      aria-hidden="true">
-    <!-- Modal content goes here -->
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editStudentForm">
+                    <input type="hidden" id="editStudentId" name="editStudentId">
+                    <div class="form-group">
+                        <label for="editStudentName">Name:</label>
+                        <input type="text" class="form-control" id="editStudentName" name="editStudentName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStudentAge">Age:</label>
+                        <input type="number" class="form-control" id="editStudentAge" name="editStudentAge" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhoneNumber">Phone Number:</label>
+                        <input type="tel" class="form-control" id="editPhoneNumber" name="editPhoneNumber" required>
+                    </div>
+                    <!-- Add more form fields as needed -->
+                    <button type="button" class="btn btn-primary" onclick="saveEditedStudent()">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Bootstrap JS and Popper.js -->
@@ -164,17 +193,23 @@ include('functions1.php');
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
     function editStudentModal(studentId) {
-        // Fetch student data via AJAX and populate the edit modal
-        $.ajax({
-            type: 'POST',
-            url: '../functions.php',
-            data: {action: 'getStudent', id: studentId},
-            success: function (response) {
-                $('#editStudentModal').html(response);
-                $('#editStudentModal').modal('show');
-            }
-        });
-    }
+
+    $.ajax({
+        type: 'POST',
+        url: 'getStudent.php',
+        data: { id: studentId },
+        dataType: 'json', // Specify JSON data type
+        success: function (response) {
+            // Populate the modal fields with the received data
+            $('#editStudentId').val(response.id);
+            $('#editStudentName').val(response.name);
+            $('#editStudentAge').val(response.age);
+            $('#editPhoneNumber').val(response.phone_number);
+            $('#editStudentModal').modal('show');
+        }
+    });
+}
+
 
     function deleteStudent(studentId) {
         // Confirm deletion and handle via AJAX
@@ -192,22 +227,34 @@ include('functions1.php');
     }
 
     function saveEditedStudent() {
-        // Collect edited data and handle via AJAX
-        var editedData = {
-            id: $('#editStudentId').val(),
-            // Add other fields as needed
-        };
+    // Collect edited data and handle via AJAX
+    var editedData = {
+        id: $('#editStudentId').val(),
+        name: $('#editStudentName').val(),
+        age: $('#editStudentAge').val(),
+        phoneNumber: $('#editPhoneNumber').val()
+        // Add other fields as needed
+    };
 
-        $.ajax({
-            type: 'POST',
-            url: 'functions.php',
-            data: {action: 'saveEditedStudent', data: editedData},
-            success: function () {
-                // Reload the page or update the table with the edited data
+    $.ajax({
+        type: 'POST',
+        url: 'functions.php',
+        data: { action: 'saveEditedStudent', data: editedData },
+        success: function (response) {
+            // Handle the response from the server
+            if (response === 'success') {
+                // If successful, close the modal and provide feedback to the user
+                $('#editStudentModal').modal('hide');
+                alert('Student edited successfully');
+                // Reload the page or update the table with the edited student data
                 location.reload();
+            } else {
+                // If an error occurred, you might want to display an error message or log the error
+                alert('Error editing student: ' + response);
             }
-        });
-    }
+        }
+    });
+}
 
     // Function to add a new student
     function addNewStudent() {
