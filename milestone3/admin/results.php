@@ -178,7 +178,7 @@ include('functions1.php');
                     </div>
                     <div class="form-group">
                         <label for="editPhoneNumber">Phone Number:</label>
-                        <input type="tel" class="form-control" id="editPhoneNumber" name="editPhoneNumber" required readonly>
+                        <input type="tel" class="form-control" id="editPhoneNumber" name="editPhoneNumber" required>
                     </div>
                     <!-- Add more form fields as needed -->
                     <button type="button" class="btn btn-primary" onclick="saveEditedStudent()">Save Changes</button>
@@ -231,6 +231,7 @@ include('functions1.php');
     function saveEditedStudent() {
     // Collect edited data and handle via AJAX
     var editedData = {
+        id: $('#editStudentId').val(),
         name: $('#editStudentName').val(),
         age: $('#editStudentAge').val(),
         phoneNumber: $('#editPhoneNumber').val()
@@ -239,7 +240,7 @@ include('functions1.php');
 
     $.ajax({
         type: 'POST',
-        url: '../functions.php',
+        url: 'functions.php',
         data: { action: 'saveEditedStudent', data: editedData },
         success: function (response) {
             // Handle the response from the server

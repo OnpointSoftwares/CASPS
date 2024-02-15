@@ -24,6 +24,22 @@ if(isset($_POST['action']))
     $response=addNewStudent($_POST['data']);
     echo $response;
     }
+    else if($_POST['action']=="saveEditedStudent")
+    {
+        $name=$_POST['data']['name'];;
+        $age=$_POST['data']['age'];;
+        $phone_number=$_POST['data']['phoneNumber'];
+       $conn=connectToDatabase();
+       $sql="update users set name='$name',age='$age',phone_number='$phone_number' where phone_number='$phone_number'";
+       $query=mysqli_query($conn,$sql);
+       if($query)
+       {
+        echo "success";
+       }
+       else{
+        echo "Update failed".mysqli_error($conn);
+       }
+    }
 }
 function ussdLogin($phoneNumber) {
     // Validate the provided password against the stored password for the phone number
@@ -105,7 +121,7 @@ function updateStudentResults($studentId, $newResults) {
 }
 
 // Function to Record Monthly Attendance
-function recordMonthlyAttendance($studentId, $month, $attendance) {
+function recordMonthlyAttendance($studentId, $month, $attendance,$unitcode) {
     $conn = connectToDatabase();
 
     // Implement logic to record monthly attendance based on the student ID and month
