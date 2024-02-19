@@ -19,6 +19,30 @@ function connectToDatabase() {
 }
 if(isset($_POST['action']))
 {
+    if($_POST['action']=='deleteStudent')
+    {
+        $id=$_POST['id'];
+       $conn=connectToDatabase();
+       $sql="delete from users where id='$id'";
+       $query=mysqli_query($conn,$sql);
+       if($query)
+       {
+        echo "success";
+       }
+       else{
+        echo "Update failed".mysqli_error($conn);
+       }
+    }
+    if($_POST['action']=='addNewResult')
+    {
+        $unit=$_POST['data']['unit'];
+        $semester=$_POST['data']['semester'];
+        $grade=$_POST['data']['grade'];
+        $studentId=$_POST['data']['studentId'];
+        $studentName=$_POST['data']['studentName'];
+        $response=addStudentResults($studentId,$studentName,$semester,$unit,$grade);
+        echo $response;
+    }
     if($_POST['action']=='addNewStudent')
     {
     $response=addNewStudent($_POST['data']);
@@ -108,14 +132,15 @@ function getStudentDataForParent($phoneNumber) {
 }
 
 // Function to Update Student Results
-function updateStudentResults($studentId, $newResults) {
+function addStudentResults($studentId,$studentName,$semester,$unit,$grade) {
     $conn = connectToDatabase();
 
     // Implement logic to update student results based on the student ID
-    $sql = "UPDATE results SET result_column = '$newResults' WHERE student_id = $studentId";
+    $sql = "insert into results(student_id,student_name,unit,semester,grade) values('$studentId','$studentName','$unit','$semester','$grade')";
 
-    $conn->query($sql);
-
+    $result=$conn->query($sql);
+        echo "success";
+    
     // Close the database connection
     $conn->close();
 }
