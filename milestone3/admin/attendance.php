@@ -1,7 +1,18 @@
 <?php
 include('../functions.php');
 include('functions1.php');
+
+// Handle form submissions or other logic if needed
+// ...
+
+// Fetch student data
+$conn = connectToDatabase();
+$sql = "SELECT * FROM users";
+$result = $conn->query($sql);
+$students = $result->fetch_all(MYSQLI_ASSOC);
+$conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,8 +22,7 @@ include('functions1.php');
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-   
-    
+
     <style>
         /* Custom styles go here */
         .container-fluid {
@@ -52,16 +62,16 @@ include('functions1.php');
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
-            <!-- Add more navigation links as needed -->
+            <a class="nav-link" href="account.php">Financial Accounts</a>
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto">
             <div class="container mt-4">
-                <h1>Students</h1>
+                <h1>Monthly Attendance</h1>
 
-                <!-- Add New Student Button (Opens Modal) -->
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addStudentModal">
-                    Add New Student
+                <!-- Add New Attendance Button (Opens Modal) -->
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addAttendanceModal">
+                    Add Monthly Attendance
                 </button>
 
                 <!-- Table -->
@@ -72,37 +82,20 @@ include('functions1.php');
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
-                        <th>Attendance</th>
-                        <th>Results</th>
+                        <th>Monthly Attendance</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php
-                    // Include functions.php and authenticateUser() here
-                    authenticateUser();
-
-                    $conn = connectToDatabase();
-                    $sql = "SELECT * FROM users";
-                    $result = $conn->query($sql);
-                    $students = $result->fetch_all(MYSQLI_ASSOC);
-                    $conn->close();
-
-                    foreach ($students as $student):
-                        ?>
+                    <?php foreach ($students as $student): ?>
                         <tr>
                             <td><?php echo $student['id']; ?></td>
                             <td><?php echo $student['name']; ?></td>
                             <td><?php echo $student['age']; ?></td>
                             <td><?php echo $student['phone_number']; ?></td>
-                            <td><?php echo $student['attendance']; ?></td>
-                            <td><?php echo $student['results']; ?></td>
                             <td>
-                                <button class="btn btn-warning btn-sm"
-                                        onclick="editStudentModal(<?php echo $student['id']; ?>)">Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm"
-                                        onclick="deleteStudent(<?php echo $student['id']; ?>)">Delete
+                                <button class="btn btn-info btn-sm"
+                                        onclick="viewAttendanceModal(<?php echo $student['id']; ?>)">View
                                 </button>
                             </td>
                         </tr>
@@ -115,74 +108,71 @@ include('functions1.php');
     </div>
 </div>
 
-<!-- Add New Student Modal -->
-<div class="modal fade" id="addStudentModal" tabindex="-1" role="dialog" aria-labelledby="addStudentModalLabel"
+<!-- Add Monthly Attendance Modal -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="addAttendanceModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+                <h5 class="modal-title" id="addAttendanceModalLabel">Add Monthly Attendance</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Your Add New Student Form Goes Here -->
-                <form id="addStudentForm">
+                <form id="addAttendanceForm">
                     <div class="form-group">
-                        <label for="studentName">Name:</label>
-                        <input type="text" class="form-control" id="studentName" name="studentName" required>
+                        <label for="attendanceMonth">Month:</label>
+                        <select class="form-control" id="attendanceMonth" name="attendanceMonth" required>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
                     </div>
                     <div class="form-group">
-                        <label for="studentAge">Age:</label>
-                        <input type="number" class="form-control" id="studentAge" name="studentAge" required>
+                    <label for="attendanceStudent">Student:</label>
+                        <select class="form-control">
+                        <?php foreach ($students as $student): ?>
+                            <option value=<?php echo $student['id']; ?>><?php echo $student['name']; ?></option>                        
+                    <?php endforeach; ?>
+                    </select>
+                        </div>
+                        <div class="form-group">
+                        <label for="attendancePercentage">Attendance(%):</label>
+                        <input type="number" class="form-control">
                     </div>
-                    <div class="form-group">
-                        <label for="phoneNumber">Phone Number:</label>
-                        <input type="tel" class="form-control" id="phoneNumber" name="phoneNumber" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phoneNumber">Email:</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
-                    </div>
-                    <!-- Add more form fields as needed -->
-                    <button type="button" class="btn btn-primary" onclick="addNewStudent()">Add Student</button>
+                 
+                    <button type="button" class="btn btn-primary" onclick="addMonthlyAttendance()">Add Attendance</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Edit Student Modal -->
-<!-- Edit Student Modal -->
-<div class="modal fade" id="editStudentModal" tabindex="-1" role="dialog" aria-labelledby="editStudentModalLabel"
+<!-- View Monthly Attendance Modal -->
+<div class="modal fade" id="viewAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="viewAttendanceModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editStudentModalLabel">Edit Student</h5>
+                <h5 class="modal-title" id="viewAttendanceModalLabel">View Monthly Attendance</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <form id="editStudentForm">
-                    <input type="hidden" id="editStudentId" name="editStudentId">
-                    <div class="form-group">
-                        <label for="editStudentName">Name:</label>
-                        <input type="text" class="form-control" id="editStudentName" name="editStudentName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editStudentAge">Age:</label>
-                        <input type="number" class="form-control" id="editStudentAge" name="editStudentAge" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editPhoneNumber">Phone Number:</label>
-                        <input type="tel" class="form-control" id="editPhoneNumber" name="editPhoneNumber" required>
-                    </div>
-                    <!-- Add more form fields as needed -->
-                    <button type="button" class="btn btn-primary" onclick="saveEditedStudent()">Save Changes</button>
-                </form>
+                <!-- Your View Monthly Attendance Content Goes Here -->
+                <!-- Display attendance details for the selected student -->
+                <div id="attendanceDetails"></div>
             </div>
         </div>
     </div>
@@ -190,100 +180,49 @@ include('functions1.php');
 
 <!-- Bootstrap JS and Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
-    function editStudentModal(studentId) {
-
-    $.ajax({
-        type: 'POST',
-        url: 'getStudent.php',
-        data: { id: studentId },
-        dataType: 'json', // Specify JSON data type
-        success: function (response) {
-            // Populate the modal fields with the received data
-            $('#editStudentId').val(response.id);
-            $('#editStudentName').val(response.name);
-            $('#editStudentAge').val(response.age);
-            $('#editPhoneNumber').val(response.phone_number);
-            $('#editStudentModal').modal('show');
-        }
-    });
-}
-
-
-    function deleteStudent(studentId) {
-        // Confirm deletion and handle via AJAX
-        if (confirm('Are you sure you want to delete this student?')) {
-            $.ajax({
-                type: 'POST',
-                url: '../functions.php',
-                data: {action: 'deleteStudent', id: studentId},
-                success: function () {
-                    // Reload the page or update the table without the deleted student
-                    location.reload();
-                }
-            });
-        }
+    function viewAttendanceModal(studentId) {
+        $.ajax({
+            type: 'POST',
+            url: 'getAttendance.php',
+            data: { id: studentId },
+            dataType: 'html', // Use 'html' if you're returning HTML content
+            success: function (response) {
+                // Display attendance details in the modal
+                $('#attendanceDetails').html(response);
+                $('#viewAttendanceModal').modal('show');
+            }
+        });
     }
 
-    function saveEditedStudent() {
-    // Collect edited data and handle via AJAX
-    var editedData = {
-        id: $('#editStudentId').val(),
-        name: $('#editStudentName').val(),
-        age: $('#editStudentAge').val(),
-        phoneNumber: $('#editPhoneNumber').val()
-        // Add other fields as needed
-    };
-
-    $.ajax({
-        type: 'POST',
-        url: 'functions.php',
-        data: { action: 'saveEditedStudent', data: editedData },
-        success: function (response) {
-            // Handle the response from the server
-            if (response === 'success') {
-                // If successful, close the modal and provide feedback to the user
-                $('#editStudentModal').modal('hide');
-                alert('Student edited successfully');
-                // Reload the page or update the table with the edited student data
-                location.reload();
-            } else {
-                // If an error occurred, you might want to display an error message or log the error
-                alert('Error editing student: ' + response);
-            }
-        }
-    });
-}
-
-    // Function to add a new student
-    function addNewStudent() {
+    function addMonthlyAttendance() {
         // Collect data from the form
-        var studentData = {
-            name: $('#studentName').val(),
-            age: $('#studentAge').val(),
-            phoneNumber: $('#phoneNumber').val()
-            // Add other fields as needed
+        var attendanceData = {
+            studentId: $('#studentId').val(),
+            month: $('#attendanceMonth').val(),
+            // Add more fields as needed
         };
 
         // Handle the data via AJAX
         $.ajax({
             type: 'POST',
-            url: '../functions.php', // Adjust the URL based on your file structure
-            data: { action: 'addNewStudent', data: studentData },
+            url: 'addAttendance.php', // Adjust the URL based on your file structure
+            data: { action: 'addMonthlyAttendance', data: attendanceData },
             success: function (response) {
                 // Handle the response from the server
                 if (response === 'success') {
                     // If successful, you might want to provide feedback to the user or perform other actions
-                    alert('Student added successfully');
-                    // Reload the page or update the table with the new student
+                    alert('Attendance added successfully');
+                    // Reload the page or update the table with the new attendance
                     location.reload();
                 } else {
                     // If an error occurred, you might want to display an error message or log the error
-                    alert('Error adding student'+response);
-                    alert(response);
+                    alert('Error adding attendance');
                 }
             }
         });

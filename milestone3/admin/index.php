@@ -52,7 +52,7 @@ include('functions1.php');
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
-            <!-- Add more navigation links as needed -->
+            <a class="nav-link" href="accounts.php">Financial Accounts</a>
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto">
@@ -72,8 +72,6 @@ include('functions1.php');
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
-                        <th>Attendance</th>
-                        <th>Results</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -95,8 +93,6 @@ include('functions1.php');
                             <td><?php echo $student['name']; ?></td>
                             <td><?php echo $student['age']; ?></td>
                             <td><?php echo $student['phone_number']; ?></td>
-                            <td><?php echo $student['attendance']; ?></td>
-                            <td><?php echo $student['results']; ?></td>
                             <td>
                                 <button class="btn btn-warning btn-sm"
                                         onclick="editStudentModal(<?php echo $student['id']; ?>)">Edit

@@ -33,6 +33,20 @@ if(isset($_POST['action']))
         echo "Update failed".mysqli_error($conn);
        }
     }
+    if($_POST['action']=='deleteResult')
+    {
+        $id=$_POST['id'];
+       $conn=connectToDatabase();
+       $sql="delete from results where id='$id'";
+       $query=mysqli_query($conn,$sql);
+       if($query)
+       {
+        echo "success";
+       }
+       else{
+        echo "Update failed".mysqli_error($conn);
+       }
+    }
     if($_POST['action']=='addNewResult')
     {
         $unit=$_POST['data']['unit'];
@@ -47,6 +61,23 @@ if(isset($_POST['action']))
     {
     $response=addNewStudent($_POST['data']);
     echo $response;
+    }
+    if($_POST['action']=="saveEditedResult")
+    {
+        $id=$_POST['data']['id'];;
+        $unit=$_POST['data']['unit'];;
+        $semester=$_POST['data']['semester'];
+        $grade=$_POST['data']['grade'];
+       $conn=connectToDatabase();
+       $sql="update results set unit='$unit',semester='$semester',grade='$grade' where id='$id'";
+       $query=mysqli_query($conn,$sql);
+       if($query)
+       {
+        echo "success";
+       }
+       else{
+        echo "Update failed".mysqli_error($conn);
+       }
     }
     else if($_POST['action']=="saveEditedStudent")
     {

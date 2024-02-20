@@ -34,7 +34,7 @@ if ($check > 0) {
 
             if ($login == "yes") {
                 // Successful login. Provide main menu options.
-                echo "CON Successful login.\n1. Student Attendance\n2. Student Results";
+                echo "CON Successful login.\n1. Student Attendance\n2. Student Results\n2. Student Fees Statement";
             } else {
                 // Handle unsuccessful login
                 echo "END Invalid credentials. Login failed.";

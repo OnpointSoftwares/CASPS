@@ -46,11 +46,12 @@ include('functions1.php');
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+    <nav class="col-md-2 d-none d-md-block bg-light sidenav">
             <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
+            <a class="nav-link" href="accounts.php">Financial Accounts</a>
             <!-- Add more navigation links as needed -->
         </nav>
 
@@ -95,11 +96,11 @@ include('functions1.php');
                             <td><?php echo $result['semester']; ?></td>
                             <td><?php echo $result['grade']; ?></td>
                             <td>
-                                <button class="btn btn-warning btn-sm"
-                                        onclick="editResultModal(<?php echo $result['student_id']; ?>)">Edit
+                                <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editResultModal"
+                                        onclick="editResultModal(<?php echo $result['id']; ?>)">Edit
                                 </button>
                                 <button class="btn btn-danger btn-sm"
-                                        onclick="deleteResult(<?php echo $result['student_id']; ?>)">Delete
+                                        onclick="deleteResult(<?php echo $result['id']; ?>)">Delete
                                 </button>
                             </td>
                         </tr>
@@ -218,7 +219,7 @@ include('functions1.php');
     function editResultModal(resultId) {
         $.ajax({
             type: 'POST',
-            url: 'get_result.php',
+            url: 'get_results.php',
             data: { id: resultId },
             dataType: 'json', // Specify JSON data type
             success: function (response) {
@@ -258,7 +259,7 @@ include('functions1.php');
 
         $.ajax({
             type: 'POST',
-            url: 'functions.php',
+            url: '../functions.php',
             data: { action: 'saveEditedResult', data: editedData },
             success: function (response) {
                 // Handle the response from the server
