@@ -5,9 +5,11 @@ include('functions1.php');
 // Handle form submissions or other logic if needed
 // ...
 
-// Fetch student data
+// Fetch student data with financial records
 $conn = connectToDatabase();
-$sql = "SELECT * FROM users";
+$sql = "SELECT users.*, financial_records.amount_paid, financial_records.payment_date
+        FROM users
+        LEFT JOIN financial_records ON users.id = financial_records.student_id";
 $result = $conn->query($sql);
 $students = $result->fetch_all(MYSQLI_ASSOC);
 $conn->close();
@@ -67,12 +69,7 @@ $conn->close();
 
         <main role="main" class="col-md-10 ml-sm-auto">
             <div class="container mt-4">
-                <h1>Monthly Attendance</h1>
-
-                <!-- Add New Attendance Button (Opens Modal) -->
-                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addAttendanceModal">
-                    Add Monthly Attendance
-                </button>
+                <h1>Student Records</h1>
 
                 <!-- Table -->
                 <table class="table table-bordered table-striped mt-3">
@@ -83,6 +80,8 @@ $conn->close();
                         <th>Age</th>
                         <th>Phone Number</th>
                         <th>Monthly Attendance</th>
+                        <th>Amount Paid</th>
+                        <th>Last Payment Date</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -95,7 +94,14 @@ $conn->close();
                             <td><?php echo $student['phone_number']; ?></td>
                             <td>
                                 <button class="btn btn-info btn-sm"
-                                        onclick="viewAttendanceModal(<?php echo $student['id']; ?>)">View
+                                        onclick="viewAttendanceModal(<?php echo $student['id']; ?>)">View Attendance
+                                </button>
+                            </td>
+                            <td><?php echo isset($student['amount_paid']) ? $student['amount_paid'] : 'N/A'; ?></td>
+                            <td><?php echo isset($student['payment_date']) ? $student['payment_date'] : 'N/A'; ?></td>
+                            <td>
+                                <button class="btn btn-success btn-sm"
+                                        onclick="viewFinancialModal(<?php echo $student['id']; ?>)">View Financial
                                 </button>
                             </td>
                         </tr>
@@ -108,57 +114,7 @@ $conn->close();
     </div>
 </div>
 
-<!-- Add Monthly Attendance Modal -->
-<div class="modal fade" id="addAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="addAttendanceModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addAttendanceModalLabel">Add Monthly Attendance</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addAttendanceForm">
-                    <div class="form-group">
-                        <label for="attendanceMonth">Month:</label>
-                        <select class="form-control" id="attendanceMonth" name="attendanceMonth" required>
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                    <label for="attendanceStudent">Student:</label>
-                        <select class="form-control" id="studentId">
-                        <?php foreach ($students as $student): ?>
-                            <option value=<?php echo $student['id']; ?>><?php echo $student['name']; ?></option>                        
-                    <?php endforeach; ?>
-                    </select>
-                        </div>
-                        <div class="form-group">
-                        <label for="attendancePercentage">Attendance(%):</label>
-                        <input type="number" class="form-control" id="attendance">
-                    </div>
-                 
-                    <button type="button" class="btn btn-primary" onclick="addMonthlyAttendance()">Add Attendance</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- View Monthly Attendance Modal -->
+<!-- View Attendance Modal -->
 <div class="modal fade" id="viewAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="viewAttendanceModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -173,6 +129,26 @@ $conn->close();
                 <!-- Your View Monthly Attendance Content Goes Here -->
                 <!-- Display attendance details for the selected student -->
                 <div id="attendanceDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Financial Details Modal -->
+<div class="modal fade" id="viewFinancialModal" tabindex="-1" role="dialog" aria-labelledby="viewFinancialModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewFinancialModalLabel">View Financial Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Your View Financial Details Content Goes Here -->
+                <!-- Display financial details for the selected student -->
+                <div id="financialDetails"></div>
             </div>
         </div>
     </div>
@@ -200,30 +176,16 @@ $conn->close();
         });
     }
 
-    function addMonthlyAttendance() {
-        // Collect data from the form
-        var attendanceData = {
-            studentId: $('#studentId').val(),
-            month: $('#attendanceMonth').val(),
-            attendancePercentage:$('#attendance').val(),
-        };
-
-        // Handle the data via AJAX
+    function viewFinancialModal(studentId) {
         $.ajax({
             type: 'POST',
-            url: 'addAttendance.php', 
-            data: { action: 'addMonthlyAttendance', data: attendanceData },
+            url: 'getFinancial.php',
+            data: { id: studentId },
+            dataType: 'html',
             success: function (response) {
-                // Handle the response from the server
-                if (response === 'success') {
-                    // If successful, you might want to provide feedback to the user or perform other actions
-                    alert('Attendance added successfully');
-                    // Reload the page or update the table with the new attendance
-                    location.reload();
-                } else {
-                    // If an error occurred, you might want to display an error message or log the error
-                    alert('Error adding attendance'+response);
-                }
+                // Display financial details in the financial modal
+                $('#financialDetails').html(response);
+                $('#viewFinancialModal').modal('show');
             }
         });
     }
