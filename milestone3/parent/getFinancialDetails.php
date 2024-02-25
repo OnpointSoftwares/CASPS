@@ -29,9 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
-            $total=0;
             foreach ($financialRecords as $record) {
-$total=$total+$record['amount_paid'];
                 echo '<tr>';
                 echo '<td>' . $record['id'] . '</td>';
                 echo '<td>' . $record['amount_paid'] . '</td>';
@@ -39,9 +37,6 @@ $total=$total+$record['amount_paid'];
                 echo '</tr>';
             }
             echo '</tbody>';
-            echo "Total Amount Paid:".$total;
-            $bal=29000-$total;
-            echo "<br>Bal:".$bal;
             echo '</table>';
         } else {
             echo '<p>No financial records found for this student.</p>';

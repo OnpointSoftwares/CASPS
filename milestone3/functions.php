@@ -1,5 +1,7 @@
 <?php
  session_start();
+ use AfricasTalking\SDK\AfricasTalking;
+ require 'ussd/vendor/autoload.php';
 // Include this file in other PHP files where you need these functions
 //require_once("vendor/autoload.php");
 // Function for Database Connection
@@ -54,7 +56,8 @@ if(isset($_POST['action']))
         $grade=$_POST['data']['grade'];
         $studentId=$_POST['data']['studentId'];
         $studentName=$_POST['data']['studentName'];
-        $response=addStudentResults($studentId,$studentName,$semester,$unit,$grade);
+        $marks=$_POST['data']['marks'];
+        $response=addStudentResults($studentId,$studentName,$semester,$unit,$marks,$grade);
         echo $response;
     }
     if($_POST['action']=='addNewStudent')
@@ -163,13 +166,16 @@ function getStudentDataForParent($phoneNumber) {
 }
 
 // Function to Update Student Results
-function addStudentResults($studentId,$studentName,$semester,$unit,$grade) {
+function addStudentResults($studentId,$studentName,$semester,$unit,$marks,$grade) {
     $conn = connectToDatabase();
 
     // Implement logic to update student results based on the student ID
-    $sql = "insert into results(student_id,student_name,unit,semester,grade) values('$studentId','$studentName','$unit','$semester','$grade')";
+    $sql = "insert into results(student_id,student_name,unit,semester,Marks,grade) values('$studentId','$studentName','$unit','$semester','$marks','$grade')";
 
     $result=$conn->query($sql);
+    $recipient=getStudentPhoneNumber($studentId);
+    $message="Dear Parent The results of your child has been updated checkout in the system.";
+    sendMessage($recipient, $message);
         echo "success";
     
     // Close the database connection
@@ -184,19 +190,93 @@ function recordMonthlyAttendance($studentId, $month, $attendance,$unitcode) {
      $sql = "INSERT INTO attendance (student_id, month, attendance_column) VALUES ($studentId, '$month', '$attendance')";
 
     $conn->query($sql);
-    $recipient = '+254712345678'; // Replace with the recipient's phone number
-    $message = 'Hello, this is a test message from your application.';
-    
-    if (sendMessage($recipient, $message)) {
-        echo 'Message sent successfully.';
-    } else {
-        echo 'Failed to send message.';
-    }
+    $recipient = getStudentPhoneNumber($studentId); // Replace with the recipient's phone number
+    $message = 'Monthly attendance Updated.Check it out in our system';
+  sendMessage($recipient, $message);
     // Close the database connection
     $conn->close();
 }
+function getStudentPhoneNumber($student_id)
+{
+    $conn = connectToDatabase();
 
+    $sql = "SELECT phone_number FROM users WHERE id = '$student_id'";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        // Fetch the first row since it's expected to have only one result
+        $row = $result->fetch_assoc();
+        $phoneNumber = $row['phone_number'];
+
+        // Close the database connection
+        $conn->close();
+
+        return $phoneNumber;
+    } else {
+        // Close the database connection
+        $conn->close();
+
+        // Return a default or handle the case where no phone number is found
+        return null;
+    }
+}
 // Function to add a new student
+function getStudentFeesForParent($phoneNumber) {
+    $conn = connectToDatabase();
+
+    $sql = "SELECT users.*, financial_records.amount_paid, financial_records.payment_date
+    FROM users
+    LEFT JOIN financial_records ON users.id = financial_records.student_id where users.phone_number='$phoneNumber'";
+$result1 = $conn->query($sql);
+$students = $result1->fetch_all(MYSQLI_ASSOC);
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+        $resultsData = "";
+        while ($row = $result->fetch_assoc()) {
+            $resultsData .= "Amount: " . $row['amount_paid'] . ", Payment Date: " . $row['payment_date']."\n";
+        }
+        $conn->close();
+        return $resultsData;
+    } else {
+        $conn->close();
+        return false;
+    }
+}
+function getStudentResultsForParent($phoneNumber) {
+    $conn = connectToDatabase();
+
+    $sql = "SELECT users.name, results.unit, results.semester, results.grade
+            FROM users
+            LEFT JOIN results ON users.id = results.student_id
+            WHERE users.phone_number = '$phoneNumber'";
+
+    $result = mysqli_query($conn,$sql);
+echo mysqli_error($conn);
+        $resultsData = "";
+        while ($row = mysqli_fetch_assoc($result)) {
+            $resultsData .="Unit: " . $row['unit'] . ", Semester: " . $row['semester'] . ", Grade: " . $row['grade'] . "\n";
+        }
+        $conn->close();
+        return $resultsData;
+}
+function getStudentAttendanceForParent($phoneNumber) {
+    $conn = connectToDatabase();
+
+    $sql = "SELECT users.name, Attendance.unit, Attendance.Attendance, Attendance.Month
+            FROM users
+            LEFT JOIN Attendance ON users.id = Attendance.student_id
+            WHERE users.phone_number = '$phoneNumber'";
+
+    $result = mysqli_query($conn,$sql);
+echo mysqli_error($conn);
+        $resultsData = "";
+        while ($row = mysqli_fetch_assoc($result)) {
+            $resultsData .="<br>Unit: " . $row['unit'] . ", Attendance: " . $row['Attendance'] . "%, Month: " . $row['Month'] . "";
+        }
+        $conn->close();
+        return $resultsData;
+}
 function addNewStudent($data) {
     $conn = connectToDatabase();
 
@@ -221,33 +301,19 @@ function addNewStudent($data) {
 }
 // Function to Send Notifications
 function sendMessage($recipient, $message) {
-    // Create a new instance of the SMS class
-    $sms = Africastalking::sms();
-
-    // Set the phone numbers you want to send to
-    $recipients = [$recipient];
-
-    // Set the message to be sent
-    $smsMessage = ['to' => $recipients, 'message' => $message];
-
-    try {
-        // Send the message
-        $response = $sms->send($smsMessage);
-
-        // Process the response as needed
-        // $response['status'], $response['smsMessageData']
-
-        // You can log or handle the response accordingly
-        // For example, you might check if the message was sent successfully
-        if ($response['status'] === 'success') {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (Exception $e) {
-        // Handle any errors that occurred during the process
-        // Log or display the error message
-        return false;
-    }
+    $text=$message;
+    $phone=$recipient;
+    $username = 'kokoAp'; // use 'sandbox' for development in the test environment
+    $apiKey   = '66cf7b31c9483373a9b23f2040f32f48d048f9a093ca3c5212670ead01851d27'; // use your sandbox app API key for development in the test environment
+    $AT = new AfricasTalking($username,$apiKey);
+    
+    // Get one of the services
+    $sms      = $AT->sms();
+    
+    // Use the service
+    $result   = $sms->send([
+        'to'      => $phone,
+        'message' => $text
+    ]);
 }
 ?>

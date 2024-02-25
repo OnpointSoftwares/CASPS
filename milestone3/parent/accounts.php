@@ -2,8 +2,15 @@
 include('../functions.php');
 include('functions1.php');
 
+// Handle form submissions or other logic if needed
+// ...
+$phone=$_SESSION['user_id'];
+
+// Fetch student data with financial records
 $conn = connectToDatabase();
-$sql = "SELECT * from users";
+$sql = "SELECT users.*, financial_records.amount_paid, financial_records.payment_date
+        FROM users
+        LEFT JOIN financial_records ON users.id = financial_records.student_id where users.phone_number='$phone'";
 $result = $conn->query($sql);
 $students = $result->fetch_all(MYSQLI_ASSOC);
 $conn->close();
@@ -50,66 +57,13 @@ $conn->close();
     </style>
 </head>
 <body>
+
 <div class="container-fluid">
     <div class="row">
-
-        <main role="main" class="col-md-10 ml-sm-auto">
-            <div class="container mt-4">
-                <h1>Student Records</h1>
-                <div class="mb-3">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addFinancialModal">
-                        Add Financial Record
-                    </button>
-                </div>
-
-                <div class="modal fade" id="addFinancialModal" tabindex="-1" role="dialog" aria-labelledby="addFinancialModalLabel"
-                     aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="addFinancialModalLabel">Add Financial Record</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="addFinancialForm">
-                                    <div class="form-group">
-                                        <label for="studentId">Student:</label>
-                                        <select class="form-control" id="studentId" name="studentId" required>
-                                            <?php foreach ($students as $student): ?>
-                                                <option value="<?php echo $student['id']; ?>"><?php echo $student['name']; ?></option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="amountPaid">Amount Paid:</label>
-                                        <input type="number" class="form-control" id="amountPaid" name="amountPaid" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="paymentDate">Payment Date:</label>
-                                        <input type="date" class="form-control" id="paymentDate" name="paymentDate" required>
-                                    </div>
-                                    
-                                    <button type="button" class="btn btn-primary" onclick="addFinancialRecord()">Add Financial Record</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-</div>
-<div class="container-fluid">
-    <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
-        <h1>Admin</h1>
-            <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-            <a class="nav-link" href="index.php">Students</a>
-            <a class="navbar-brand" href="results.php">Results</a>
+        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+        <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
-            <a class="nav-link" href="account.php">Financial Accounts</a>
+            <a class="nav-link" href="accounts.php">Financial Accounts</a>
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto">
@@ -124,6 +78,8 @@ $conn->close();
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
+                        <th>Amount Paid</th>
+                        <th>Last Payment Date</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -134,7 +90,9 @@ $conn->close();
                             <td><?php echo $student['name']; ?></td>
                             <td><?php echo $student['age']; ?></td>
                             <td><?php echo $student['phone_number']; ?></td>
-                        <td>
+                            <td><?php echo isset($student['amount_paid']) ? $student['amount_paid'] : 'N/A'; ?></td>
+                            <td><?php echo isset($student['payment_date']) ? $student['payment_date'] : 'N/A'; ?></td>
+                            <td>
                                 <button class="btn btn-success btn-sm"
                                         onclick="viewFinancialModal(<?php echo $student['id']; ?>)">View Financial
                                 </button>
@@ -197,30 +155,6 @@ $conn->close();
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
-    function addFinancialRecord() {
-        var financialData = {
-            studentId: $('#studentId').val(),
-            amountPaid: $('#amountPaid').val(),
-            paymentDate: $('#paymentDate').val(),
-        };
-        $.ajax({
-            type: 'POST',
-            url: 'addFinancialRecord.php', // Adjust the URL based on your file structure
-            data: { action: 'addFinancialRecord', data: financialData },
-            success: function (response) {
-                // Handle the response from the server
-                if (response === 'success') {
-                    // If successful, you might want to provide feedback to the user or perform other actions
-                    alert('Financial record added successfully');
-                    // Reload the page or update the table with the new financial record
-                    location.reload();
-                } else {
-                    // If an error occurred, you might want to display an error message or log the error
-                    alert('Error adding financial record');
-                }
-            }
-        });
-    }
     function viewAttendanceModal(studentId) {
         $.ajax({
             type: 'POST',
@@ -238,7 +172,7 @@ $conn->close();
     function viewFinancialModal(studentId) {
         $.ajax({
             type: 'POST',
-            url: 'getFinancialDetails.php',
+            url: 'getFinancial.php',
             data: { id: studentId },
             dataType: 'html',
             success: function (response) {

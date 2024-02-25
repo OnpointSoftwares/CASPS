@@ -57,7 +57,9 @@ $conn->close();
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+        
+        <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+        <h1>Admin</h1>
             <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>
@@ -82,7 +84,6 @@ $conn->close();
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
-                        <th>Monthly Attendance</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -102,7 +103,7 @@ $conn->close();
                     <?php endforeach; ?>
                     </tbody>
                 </table>
-
+                <div id="attendanceDetails"></div>
             </div>
         </main>
     </div>
@@ -145,12 +146,32 @@ $conn->close();
                             <option value=<?php echo $student['id']; ?>><?php echo $student['name']; ?></option>                        
                     <?php endforeach; ?>
                     </select>
-                        </div>
-                        <div class="form-group">
-                        <label for="attendancePercentage">Attendance(%):</label>
-                        <input type="number" class="form-control" id="attendance">
+                    <div class="form-group">
+                    <label for="attendanceStudent">Unit:</label>
+                        <select class="form-control" id="unit">
+                        <option value="Project management">Project management</option>                      
+                        <option value="Project2">Project2</option>  
+                        <option value="Professional ethics">Professional ethics</option>  
+                        <option value="Company accounting">Company accounting</option>  
+                        <option value="Object oriented analysis and design ">Object oriented analysis and design </option>                      
+                    
+                    </select>
+                    <div class="form-group">
+                        <label for="attendancePercentage">Week 1:</label>
+                        <input type="checkbox" class="form-control" id="week1">
                     </div>
-                 
+                    <div class="form-group">
+                        <label for="attendancePercentage">Week 2:</label>
+                        <input type="checkbox" class="form-control" id="week2">
+                    </div>
+                    <div class="form-group">
+                        <label for="attendancePercentage">Week 3:</label>
+                        <input type="checkbox" class="form-control" id="week3">
+                    </div>
+                    <div class="form-group">
+                        <label for="attendancePercentage">Week 4:</label>
+                        <input type="checkbox" class="form-control" id="week4">
+                    </div>
                     <button type="button" class="btn btn-primary" onclick="addMonthlyAttendance()">Add Attendance</button>
                 </form>
             </div>
@@ -177,7 +198,7 @@ $conn->close();
         </div>
     </div>
 </div>
-
+<div id="attendanceDetails"></div>
 <!-- Bootstrap JS and Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
@@ -187,46 +208,63 @@ $conn->close();
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
     function viewAttendanceModal(studentId) {
-        $.ajax({
-            type: 'POST',
-            url: 'getAttendance.php',
-            data: { id: studentId },
-            dataType: 'html', // Use 'html' if you're returning HTML content
-            success: function (response) {
-                // Display attendance details in the modal
-                $('#attendanceDetails').html(response);
-                $('#viewAttendanceModal').modal('show');
-            }
-        });
+   // Show loading spinner before making the AJAX request
+$('#loadingSpinner').show();
+$.ajax({
+    type: 'POST',
+    url: 'getAttendance.php',
+    data: { id: studentId },
+    dataType: 'html',
+    success: function (response) {
+        console.log(response);  // Check the response in the console
+        $('#attendanceDetails').html(response);
+        //$('#viewAttendanceModal').modal('show');
+    },
+    error: function (xhr, status, error) {
+        // Handle error
+        console.error('Error fetching attendance:', error);
+        alert('Error fetching attendance. Please try again.');
+    }
+});
+
     }
 
     function addMonthlyAttendance() {
-        // Collect data from the form
-        var attendanceData = {
-            studentId: $('#studentId').val(),
-            month: $('#attendanceMonth').val(),
-            attendancePercentage:$('#attendance').val(),
-        };
+    // Collect data from the form
 
-        // Handle the data via AJAX
-        $.ajax({
-            type: 'POST',
-            url: 'addAttendance.php', 
-            data: { action: 'addMonthlyAttendance', data: attendanceData },
-            success: function (response) {
-                // Handle the response from the server
-                if (response === 'success') {
-                    // If successful, you might want to provide feedback to the user or perform other actions
-                    alert('Attendance added successfully');
-                    // Reload the page or update the table with the new attendance
-                    location.reload();
-                } else {
-                    // If an error occurred, you might want to display an error message or log the error
-                    alert('Error adding attendance'+response);
-                }
+    var attendanceData = {
+    unit: $("#unit").val(),
+    studentId: $('#studentId').val(),
+    month: $('#attendanceMonth').val(),
+    attendancePercentage: (
+        ($('#week1').is(':checked') ? 25 : 0) +
+        ($('#week2').is(':checked') ? 25 : 0) +
+        ($('#week3').is(':checked') ? 25 : 0) +
+        ($('#week4').is(':checked') ? 25 : 0)
+    )
+};
+    console.log('Student ID:', $('#studentId').val());
+console.log('Month:', $('#attendanceMonth').val());
+console.log('Attendance Percentage:', attendanceData);
+    $.ajax({
+        type: 'POST',
+        url: 'addAttendance.php',
+        data: { action: 'addMonthlyAttendance', data: attendanceData },
+        success: function (response) {
+            // Handle the response from the server
+            if (response === 'success') {
+                // If successful, you might want to provide feedback to the user or perform other actions
+                alert('Attendance added successfully');
+                // Reload the page or update the table with the new attendance
+                location.reload();
+            } else {
+                // If an error occurred, you might want to display an error message or log the error
+                alert('Error adding attendance: ' + response);
             }
-        });
-    }
+        }
+    });
+}
+
 </script>
 
 </body>

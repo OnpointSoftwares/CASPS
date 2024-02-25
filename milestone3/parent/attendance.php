@@ -1,13 +1,12 @@
 <?php
 include('../functions.php');
 include('functions1.php');
-
 // Handle form submissions or other logic if needed
 // ...
-
-// Fetch student data with financial records
+$phone=$_SESSION['user_id'];
+// Fetch student data
 $conn = connectToDatabase();
-$sql = "SELECT * FROM users";
+$sql = "SELECT * FROM users where phone_number='$phone'";
 $result = $conn->query($sql);
 $students = $result->fetch_all(MYSQLI_ASSOC);
 $conn->close();
@@ -57,18 +56,16 @@ $conn->close();
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
-        <h1>Admin</h1>
-            <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
-            <a class="nav-link" href="index.php">Students</a>
+        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+        <a class="navbar-brand" href="index.php">Dashboard</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
-            <a class="nav-link" href="account.php">Financial Accounts</a>
+            <a class="nav-link" href="accounts.php">Financial Accounts</a>
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto">
             <div class="container mt-4">
-                <h1>Student Records</h1>
+                <h1>Monthly Attendance</h1>
 
                 <!-- Table -->
                 <table class="table table-bordered table-striped mt-3">
@@ -78,6 +75,7 @@ $conn->close();
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
+                        <th>Monthly Attendance</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -88,9 +86,9 @@ $conn->close();
                             <td><?php echo $student['name']; ?></td>
                             <td><?php echo $student['age']; ?></td>
                             <td><?php echo $student['phone_number']; ?></td>
-                        <td>
-                                <button class="btn btn-success btn-sm"
-                                        onclick="viewFinancialModal(<?php echo $student['id']; ?>)">View Financial
+                            <td>
+                                <button class="btn btn-info btn-sm"
+                                        onclick="viewAttendanceModal(<?php echo $student['id']; ?>)">View
                                 </button>
                             </td>
                         </tr>
@@ -103,7 +101,57 @@ $conn->close();
     </div>
 </div>
 
-<!-- View Attendance Modal -->
+<!-- Add Monthly Attendance Modal -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="addAttendanceModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAttendanceModalLabel">Add Monthly Attendance</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addAttendanceForm">
+                    <div class="form-group">
+                        <label for="attendanceMonth">Month:</label>
+                        <select class="form-control" id="attendanceMonth" name="attendanceMonth" required>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                    <label for="attendanceStudent">Student:</label>
+                        <select class="form-control" id="studentId">
+                        <?php foreach ($students as $student): ?>
+                            <option value=<?php echo $student['id']; ?>><?php echo $student['name']; ?></option>                        
+                    <?php endforeach; ?>
+                    </select>
+                        </div>
+                        <div class="form-group">
+                        <label for="attendancePercentage">Attendance(%):</label>
+                        <input type="number" class="form-control" id="attendance">
+                    </div>
+                 
+                    <button type="button" class="btn btn-primary" onclick="addMonthlyAttendance()">Add Attendance</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Monthly Attendance Modal -->
 <div class="modal fade" id="viewAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="viewAttendanceModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -118,26 +166,6 @@ $conn->close();
                 <!-- Your View Monthly Attendance Content Goes Here -->
                 <!-- Display attendance details for the selected student -->
                 <div id="attendanceDetails"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- View Financial Details Modal -->
-<div class="modal fade" id="viewFinancialModal" tabindex="-1" role="dialog" aria-labelledby="viewFinancialModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="viewFinancialModalLabel">View Financial Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Your View Financial Details Content Goes Here -->
-                <!-- Display financial details for the selected student -->
-                <div id="financialDetails"></div>
             </div>
         </div>
     </div>
@@ -165,16 +193,30 @@ $conn->close();
         });
     }
 
-    function viewFinancialModal(studentId) {
+    function addMonthlyAttendance() {
+        // Collect data from the form
+        var attendanceData = {
+            studentId: $('#studentId').val(),
+            month: $('#attendanceMonth').val(),
+            attendancePercentage:$('#attendance').val(),
+        };
+
+        // Handle the data via AJAX
         $.ajax({
             type: 'POST',
-            url: 'getFinancialDetails.php',
-            data: { id: studentId },
-            dataType: 'html',
+            url: 'addAttendance.php', 
+            data: { action: 'addMonthlyAttendance', data: attendanceData },
             success: function (response) {
-                // Display financial details in the financial modal
-                $('#financialDetails').html(response);
-                $('#viewFinancialModal').modal('show');
+                // Handle the response from the server
+                if (response === 'success') {
+                    // If successful, you might want to provide feedback to the user or perform other actions
+                    alert('Attendance added successfully');
+                    // Reload the page or update the table with the new attendance
+                    location.reload();
+                } else {
+                    // If an error occurred, you might want to display an error message or log the error
+                    alert('Error adding attendance'+response);
+                }
             }
         });
     }

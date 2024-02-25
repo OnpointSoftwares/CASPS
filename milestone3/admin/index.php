@@ -47,7 +47,8 @@ include('functions1.php');
 
 <div class="container-fluid">
     <div class="row">
-    <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+    <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+    <h1>Admin</h1>
             <a class="navbar-brand" href="index.php">Admin Panel</a>
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>

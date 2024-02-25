@@ -1,7 +1,18 @@
 <?php
 include('../functions.php');
 include('functions1.php');
+
+// Handle form submissions or other logic if needed
+// ...
+
+// Fetch student data with financial records
+$conn = connectToDatabase();
+$sql = "SELECT * FROM users";
+$result = $conn->query($sql);
+$students = $result->fetch_all(MYSQLI_ASSOC);
+$conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +22,7 @@ include('functions1.php');
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-   
+
     <style>
         /* Custom styles go here */
         .container-fluid {
@@ -46,61 +57,42 @@ include('functions1.php');
 
 <div class="container-fluid">
     <div class="row">
-    <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+        <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+        <h1>Admin</h1>
             <a class="navbar-brand" href="dashboard.php">Admin Panel</a>
             <a class="nav-link" href="index.php">Students</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
-            <a class="nav-link" href="accounts.php">Financial Accounts</a>
-            <!-- Add more navigation links as needed -->
+            <a class="nav-link" href="account.php">Financial Accounts</a>
         </nav>
 
         <main role="main" class="col-md-10 ml-sm-auto">
             <div class="container mt-4">
-                <h1>Student Results</h1>
-
-                <!-- Add New Result Button (Opens Modal) -->
+                <h1>Student Records</h1>
                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addResultModal">
                     Add New Result
                 </button>
-
                 <!-- Table -->
                 <table class="table table-bordered table-striped mt-3">
                     <thead class="thead-dark">
                     <tr>
-                        <th>studentID</th>
+                        <th>ID</th>
                         <th>Name</th>
-                        <th>Unit</th>
-                        <th>Semester</th>
-                        <th>Grade</th>
+                        <th>Age</th>
+                        <th>Phone Number</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php
-                    // Include functions.php and authenticateUser() here
-                    authenticateUser();
-
-                    $conn = connectToDatabase();
-                    $sql = "SELECT * FROM results";
-                    $result = $conn->query($sql);
-                    $results = $result->fetch_all(MYSQLI_ASSOC);
-                    $conn->close();
-
-                    foreach ($results as $result):
-                        ?>
+                    <?php foreach ($students as $student): ?>
                         <tr>
-                            <td><?php echo $result['student_id']; ?></td>
-                            <td><?php echo $result['student_name']; ?></td>
-                            <td><?php echo $result['unit']; ?></td>
-                            <td><?php echo $result['semester']; ?></td>
-                            <td><?php echo $result['grade']; ?></td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editResultModal"
-                                        onclick="editResultModal(<?php echo $result['id']; ?>)">Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm"
-                                        onclick="deleteResult(<?php echo $result['id']; ?>)">Delete
+                            <td><?php echo $student['id']; ?></td>
+                            <td><?php echo $student['name']; ?></td>
+                            <td><?php echo $student['age']; ?></td>
+                            <td><?php echo $student['phone_number']; ?></td>
+                        <td>
+                                <button class="btn btn-success btn-sm"
+                                        onclick="viewResultsModal(<?php echo $student['id']; ?>)">View Results
                                 </button>
                             </td>
                         </tr>
@@ -113,7 +105,45 @@ include('functions1.php');
     </div>
 </div>
 
-<!-- Add New Result Modal -->
+<!-- View Attendance Modal -->
+<div class="modal fade" id="viewAttendanceModal" tabindex="-1" role="dialog" aria-labelledby="viewAttendanceModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewAttendanceModalLabel">View Monthly Attendance</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Your View Monthly Attendance Content Goes Here -->
+                <!-- Display attendance details for the selected student -->
+                <div id="attendanceDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Financial Details Modal -->
+<div class="modal fade" id="viewFinancialModal" tabindex="-1" role="dialog" aria-labelledby="viewFinancialModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewFinancialModalLabel">View Results</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Your View Financial Details Content Goes Here -->
+                <!-- Display financial details for the selected student -->
+                <div id="financialDetails"></div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="modal fade" id="addResultModal" tabindex="-1" role="dialog" aria-labelledby="addResultModalLabel"
      aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -156,12 +186,22 @@ include('functions1.php');
                     </select>
                 </div>
                     <div class="form-group">
-                        <label for="unit">Unit:</label>
-                        <input type="text" class="form-control" id="unit" name="unit" required>
-                    </div>
+                    <label for="attendanceStudent">Unit:</label>
+                        <select class="form-control" id="unit" name="unit">
+                        <option value="Project2">Project2</option>  
+                        <option value="Professional ethics">Professional ethics</option>  
+                        <option value="Company accounting">Company accounting</option>  
+                        <option value="Object oriented analysis and design ">Object oriented analysis and design </option>                      
+                        <option value="Project management">Project management</option>                      
+                    </select>
+                        </div>
                     <div class="form-group">
                         <label for="semester">Semester:</label>
                         <input type="text" class="form-control" id="semester" name="semester" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Marks:</label>
+                        <input type="text" class="form-control" id="marks" name="marks" required>
                     </div>
                     <div class="form-group">
                         <label for="grade">Grade:</label>
@@ -174,110 +214,27 @@ include('functions1.php');
         </div>
     </div>
 </div>
-
-<!-- Edit Result Modal -->
-<div class="modal fade" id="editResultModal" tabindex="-1" role="dialog" aria-labelledby="editResultModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editResultModalLabel">Edit Result</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <!-- Your Edit Result Form Goes Here -->
-                <form id="editResultForm">
-                    <input type="hidden" id="editResultId" name="editResultId">
-                    <div class="form-group">
-                        <label for="editUnit">Unit:</label>
-                        <input type="text" class="form-control" id="editUnit" name="editUnit" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editSemester">Semester:</label>
-                        <input type="text" class="form-control" id="editSemester" name="editSemester" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editGrade">Grade:</label>
-                        <input type="text" class="form-control" id="editGrade" name="editGrade" required>
-                    </div>
-                    <!-- Add more form fields as needed -->
-                    <button type="button" class="btn btn-primary" onclick="saveEditedResult()">Save Changes</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Bootstrap JS and Popper.js -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
-    function editResultModal(resultId) {
+    function viewAttendanceModal(studentId) {
         $.ajax({
             type: 'POST',
-            url: 'get_results.php',
-            data: { id: resultId },
-            dataType: 'json', // Specify JSON data type
+            url: 'getAttendance.php',
+            data: { id: studentId },
+            dataType: 'html', // Use 'html' if you're returning HTML content
             success: function (response) {
-                // Populate the modal fields with the received data
-                $('#editResultId').val(response.id);
-                $('#editUnit').val(response.unit);
-                $('#editSemester').val(response.semester);
-                $('#editGrade').val(response.grade);
-                $('#editResultModal').modal('show');
+                // Display attendance details in the modal
+                $('#attendanceDetails').html(response);
+                $('#viewAttendanceModal').modal('show');
             }
         });
     }
-
-    function deleteResult(resultId) {
-        // Confirm deletion and handle via AJAX
-        if (confirm('Are you sure you want to delete this result?')) {
-            $.ajax({
-                type: 'POST',
-                url: '../functions.php',
-                data: {action: 'deleteResult', id: resultId},
-                success: function () {
-                    // Reload the page or update the table without the deleted result
-                    location.reload();
-                }
-            });
-        }
-    }
-
-    function saveEditedResult() {
-        // Collect edited data and handle via AJAX
-        var editedData = {
-            id: $('#editResultId').val(),
-            unit: $('#editUnit').val(),
-            semester: $('#editSemester').val(),
-            grade: $('#editGrade').val()
-        };
-
-        $.ajax({
-            type: 'POST',
-            url: '../functions.php',
-            data: { action: 'saveEditedResult', data: editedData },
-            success: function (response) {
-                // Handle the response from the server
-                if (response === 'success') {
-                    // If successful, close the modal and provide feedback to the user
-                    $('#editResultModal').modal('hide');
-                    alert('Result edited successfully');
-                    // Reload the page or update the table with the edited result data
-                    location.reload();
-                } else {
-                    // If an error occurred, you might want to display an error message or log the error
-                    alert('Error editing result: ' + response);
-                }
-            }
-        });
-    }
-
-    // Function to add a new result
     function addNewResult(){
         // Collect data from the form
         var resultData = {
@@ -285,7 +242,8 @@ include('functions1.php');
             semester: $('#semester').val(),
             grade: $('#grade').val(),
             studentId:$('#studentId').val(),
-            studentName:$('#studentName').val()
+            studentName:$('#studentName').val(),
+            marks:$('#marks').val()
         };
 
         // Handle the data via AJAX
@@ -304,6 +262,19 @@ include('functions1.php');
                     // If an error occurred, you might want to display an error message or log the error
                     alert('Error adding result: ' + response);
                 }
+            }
+        });
+    }
+    function viewResultsModal(studentId) {
+        $.ajax({
+            type: 'POST',
+            url: 'get_results.php',
+            data: { id: studentId },
+            dataType: 'html',
+            success: function (response) {
+                // Display financial details in the financial modal
+                $('#financialDetails').html(response);
+                $('#viewFinancialModal').modal('show');
             }
         });
     }
