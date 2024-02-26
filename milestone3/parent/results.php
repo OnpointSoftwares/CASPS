@@ -46,7 +46,8 @@ include('functions1.php');
 
 <div class="container-fluid">
     <div class="row">
-    <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+    <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+        <h1>Parent Page</h1>
     <a class="navbar-brand" href="index.php">Dashboard</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
@@ -67,6 +68,7 @@ include('functions1.php');
                         <th>Unit</th>
                         <th>Semester</th>
                         <th>Grade</th>
+                        <th>Marks</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -84,15 +86,18 @@ include('functions1.php');
                     $result = $conn->query($sql);
                     $results = $result->fetch_all(MYSQLI_ASSOC);
                     $conn->close();
-
+                    $marks=0;
                     foreach ($results as $result):
+                        $marks=$marks+$result['Marks'];
                         ?>
                         <tr>
+                            
                             <td><?php echo $result['student_id']; ?></td>
                             <td><?php echo $result['student_name']; ?></td>
                             <td><?php echo $result['unit']; ?></td>
                             <td><?php echo $result['semester']; ?></td>
                             <td><?php echo $result['grade']; ?></td>
+                            <td><?php echo $result['Marks']; ?></td>
                             <td>
                                 <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editResultModal"
                                         onclick="editResultModal(<?php echo $result['id']; ?>)">Edit
@@ -104,6 +109,9 @@ include('functions1.php');
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
+                    <?php 
+                    $mean=$marks/6;
+                    echo "Mean Marks:<b>".$mean."</b>"; ?>
                 </table>
 
             </div>

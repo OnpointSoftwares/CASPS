@@ -2,15 +2,12 @@
 include('../functions.php');
 include('functions1.php');
 
-// Handle form submissions or other logic if needed
-// ...
 $phone=$_SESSION['user_id'];
 
 // Fetch student data with financial records
 $conn = connectToDatabase();
-$sql = "SELECT users.*, financial_records.amount_paid, financial_records.payment_date
-        FROM users
-        LEFT JOIN financial_records ON users.id = financial_records.student_id where users.phone_number='$phone'";
+$sql = "SELECT *
+        FROM users where phone_number='$phone'";
 $result = $conn->query($sql);
 $students = $result->fetch_all(MYSQLI_ASSOC);
 $conn->close();
@@ -60,7 +57,8 @@ $conn->close();
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+    <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+        <h1>Parent Page</h1>
         <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>
             <a class="nav-link" href="accounts.php">Financial Accounts</a>
@@ -78,8 +76,6 @@ $conn->close();
                         <th>Name</th>
                         <th>Age</th>
                         <th>Phone Number</th>
-                        <th>Amount Paid</th>
-                        <th>Last Payment Date</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -90,8 +86,6 @@ $conn->close();
                             <td><?php echo $student['name']; ?></td>
                             <td><?php echo $student['age']; ?></td>
                             <td><?php echo $student['phone_number']; ?></td>
-                            <td><?php echo isset($student['amount_paid']) ? $student['amount_paid'] : 'N/A'; ?></td>
-                            <td><?php echo isset($student['payment_date']) ? $student['payment_date'] : 'N/A'; ?></td>
                             <td>
                                 <button class="btn btn-success btn-sm"
                                         onclick="viewFinancialModal(<?php echo $student['id']; ?>)">View Financial
@@ -172,7 +166,7 @@ $conn->close();
     function viewFinancialModal(studentId) {
         $.ajax({
             type: 'POST',
-            url: 'getFinancial.php',
+            url: 'getFinancialDetails.php',
             data: { id: studentId },
             dataType: 'html',
             success: function (response) {

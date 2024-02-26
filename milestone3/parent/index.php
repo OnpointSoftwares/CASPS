@@ -56,7 +56,8 @@ $conn->close();
 
 <div class="container-fluid">
     <div class="row">
-        <nav class="col-md-2 d-none d-md-block bg-light sidenav">
+    <nav class="col-md-2 d-none d-md-block bg-dark sidenav">
+        <h1>Parent Page</h1>
         <a class="navbar-brand" href="index.php">Dashboard</a>
             <a class="navbar-brand" href="results.php">Results</a>
             <a class="nav-link" href="attendance.php">Attendance</a>

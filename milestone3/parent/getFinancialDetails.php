@@ -29,13 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
+            $total=0;
             foreach ($financialRecords as $record) {
+                $total=$total+$record['amount_paid'];
                 echo '<tr>';
                 echo '<td>' . $record['id'] . '</td>';
                 echo '<td>' . $record['amount_paid'] . '</td>';
                 echo '<td>' . $record['payment_date'] . '</td>';
                 echo '</tr>';
             }
+            echo "Total paid:".$total;
+            $remaining=29000-$total;
+            echo "<br>Remaining:".$remaining;
             echo '</tbody>';
             echo '</table>';
         } else {
